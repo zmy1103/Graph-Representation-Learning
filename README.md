@@ -45,7 +45,7 @@ sota：https://paperswithcode.com/sota/link-prediction-on-fb15k-237
 
   一方面可以看出训练后的结果是有效的，但不是十分优秀，可能与transE模型的局限性有关，transE只能处理一对一的关系，不适合一对多/多对一关系。
 
-## KBGAT
+## KBAT
 
 ### GCN
 
@@ -58,11 +58,41 @@ sota：https://paperswithcode.com/sota/link-prediction-on-fb15k-237
 
 ### KBAT(Knowledge Base Attention Network)
 
-在知识图谱的图基础上，根据relation关系，通过self-attention机制考虑邻接点实体的影响。
-
-TODO...
+![image-20210531184310746](https://tva1.sinaimg.cn/large/008i3skNly1gr1sscnorpj31eo0lctfo.jpg)
 
 
+
+Knowledge Embedding 就是希望通过模型去学习一个有效的实体和关系embedding，以及一个打分模型$f$。以下为模型主要计算流程。该模型主要是从GCN的基础上借鉴注意力机制，在知识图谱这个特定场景中构建了Knowledge Base Attention Network，并在公开数据集上不同任务中取得了不错的效果。
+
+
+
+Relation embedding中，我们通过对邻接点加以注意力机制后进行聚合，并对实体和关系特征进行了线性变换以映射到更高维度。公式如下，其中$c_{ijk}$表示一个三元组的向量表示，$h_i,h_j,g_k$表示实体头和尾结点以及关系的向量表示。
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gr1t4d99b5j30bi02eq2y.jpg" alt="image-20210531185440493" style="zoom:50%;" />
+
+模型结构并没有显示的使用注意力机制，而是使用一个简单的神经网络层作为注意力机制层，其计算方式如下：
+
+另外，使用Self-attention机制，计算$b_{ijk}$，对于所有邻居节点的三元组$t_{ij}^k$，其中$h_i,h_j$表示第i,j个实体，$W_2$是线性变换矩阵。
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gr1sws9rt4j30fa03ejri.jpg" alt="image-20210531184726892" style="zoom:50%;" />
+
+然后使用Softmax将attention的输出归一化，得到$\alpha_{ijk}$，$N_i$表示与$e_i, e_j$邻接的节点。
+
+<img src="/Users/bytedance/Library/Application Support/typora-user-images/image-20210531184935359.png" alt="image-20210531184935359" style="zoom:50%;" />
+
+对于每个实体$e_i$其新的embedding通过注意力机制权重聚合邻居信息：
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gr1t2fi459j30f6042aaa.jpg" alt="image-20210531185249375" style="zoom:50%;" />
+
+然后使用与multi-head attention相似的机制，用于稳定学习过程和得到更多邻居节点的信息：
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gr1t413bahj30ec04uq37.jpg" alt="image-20210531185421335" style="zoom:50%;" />
+
+最后再对新生成的embedding矩阵G做线性变化：
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gr1t6rvrqqj308003swef.jpg" alt="image-20210531185700150" style="zoom:50%;" />
+
+至此通过上述流程，可以得到一个KnowLedge Base Attention Layer。
 
 ## Metric and Performance
 
