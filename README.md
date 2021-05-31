@@ -20,9 +20,30 @@ sota：https://paperswithcode.com/sota/link-prediction-on-fb15k-237
 
 ## TransE
 
+- Principle：TransE将起始实体，关系，指向实体映射成同一空间的向量，如果（head,relation,tail）存在，那么h+r≈t
 
+- Objective function：
+  $$
+  f_{r}(h, t)=\left\|\mathbf{h}_{r}+\mathbf{r}-\mathbf{t}_{r}\right\|_{2}^{2}
+  $$
 
+- Recurrence process：
 
+  ![未命名文件.jpg](http://ww1.sinaimg.cn/large/005IQUPRgy1gr1n47kgdfj31520im77a.jpg)
+
+- Code analysis：
+
+  
+
+- Result：
+
+  经过transE建模后，在测试集的13584个实体，961个关系的 59071个三元组中，测试结果如下：
+
+  mean rank: 
+  hit@3: 
+  hit@10: 
+
+  一方面可以看出训练后的结果是有效的，但不是十分优秀，可能与transE模型的局限性有关，transE只能处理一对一的关系，不适合一对多/多对一关系。
 
 ## KBGAT
 
