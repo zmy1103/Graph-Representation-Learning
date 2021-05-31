@@ -78,7 +78,7 @@ Relation embedding中，我们通过对邻接点加以注意力机制后进行�
 
 然后使用Softmax将attention的输出归一化，得到$\alpha_{ijk}$，$N_i$表示与$e_i, e_j$邻接的节点。
 
-<img src="/Users/bytedance/Library/Application Support/typora-user-images/image-20210531184935359.png" alt="image-20210531184935359" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gr1tbpf60qj30ig05cwey.jpg" alt="image-20210531184935359" style="zoom:50%;" />
 
 对于每个实体$e_i$其新的embedding通过注意力机制权重聚合邻居信息：
 
