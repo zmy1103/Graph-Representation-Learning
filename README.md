@@ -1,12 +1,12 @@
 # Graph-Representation-Learning
 
-5.24-5.31:利用FB15K-237数据集，跑各个模型的XXX任务
+5.24-5.31:利用FB15K-237数据集，复现几个模型的预测任务
 
 6.1-6.7:设计场景在医疗知识图谱上实践多步路径
 
-- 在公开数据集上复现论文中基于多步路径的模型
-- 设计我们知识图谱上的场景
-- 利用我们在Neo4j的数据XXX
+- 在FB15K上复现论文中基于多步路径的TKFGE模型
+- 设计我们知识图谱上的应用场景
+- 利用我们在Neo4j导入的数据进行实验
 
 [TOC]
 
@@ -20,30 +20,84 @@ sota：https://paperswithcode.com/sota/link-prediction-on-fb15k-237
 
 ## TransE
 
-- Principle：TransE将起始实体，关系，指向实体映射成同一空间的向量，如果（head,relation,tail）存在，那么h+r≈t
+### Principle
 
-- Objective function：
-  $$
-  f_{r}(h, t)=\left\|\mathbf{h}_{r}+\mathbf{r}-\mathbf{t}_{r}\right\|_{2}^{2}
-  $$
+TransE将起始实体，关系，指向实体映射成同一空间的向量，如果（head,relation,tail）存在，那么h+r≈t
 
-- Recurrence process：
+### Objective function
 
-  ![未命名文件.jpg](http://ww1.sinaimg.cn/large/005IQUPRgy1gr1n47kgdfj31520im77a.jpg)
+$$
+f_{r}(h, t)=\left\|\mathbf{h}_{r}+\mathbf{r}-\mathbf{t}_{r}\right\|_{2}^{2}
+$$
 
-- Code analysis：
+### Recurrence process
 
-  
+![未命名文件.jpg](http://ww1.sinaimg.cn/large/005IQUPRgy1gr1n47kgdfj31520im77a.jpg)
 
-- Result：
+### Evaluation code analysis
 
-  经过transE建模后，在测试集的13584个实体，961个关系的 59071个三元组中，测试结果如下：
+![](http://ww1.sinaimg.cn/large/005IQUPRly1gr2l3dvyxpj31a80qe15o.jpg)
 
-  mean rank: 
-  hit@3: 
-  hit@10: 
+### Result：
 
-  一方面可以看出训练后的结果是有效的，但不是十分优秀，可能与transE模型的局限性有关，transE只能处理一对一的关系，不适合一对多/多对一关系。
+经过transE建模后，在测试集的13584个实体，961个关系的 59071个三元组中，测试结果如下：
+
+mean rank: 
+hit@3: 
+hit@10: 
+
+一方面可以看出训练后的结果是有效的，但不是十分优秀，可能与transE模型的局限性有关，transE只能处理一对一的关系，不适合一对多/多对一关系。
+
+## ConvE
+
+### Principle
+
+![](http://ww1.sinaimg.cn/large/005IQUPRgy1gr2nvj7n8bj31xc0ns4qp.jpg)
+
+对三元组（h,r,t）,将（h,r）进行网络变换后，与t进行比较，使得损失最小化
+
+### calculation process
+
+前向传播：
+
+- 嵌入：将h,r嵌入为向量，并转换成矩阵进行拼接
+- 卷积：利用卷积核对拼接后的矩阵计算二维卷机
+- 全连接：将卷机得到的特征矩阵拉平为向量，通过全连接层映射为嵌入维度的向量
+- 内积：实体嵌入矩阵与全连接层得到的向量进行内积，然后进行softmax计算
+
+损失函数：
+$$
+\begin{array}{l}
+L(p, t)=\frac{1}{K} \sum_{k}\left(t_{k} \log \left(p_{k}\right)+\left(1-t_{k}\right) \log \left(1-p_{k}\right)\right) \\
+t_{k}=\left\{\begin{array}{l}
+1 & \text { 当 } e 1 \text { 与 } e k \text { 存在关系 } r \\
+0 & \text { 当e1与 } e k \text { 不存在关系 } r
+\end{array}\right.
+\end{array}
+$$
+模型细节：
+
+- 使用relu函数做非线形激活函数
+- 在嵌入层、卷积层和全连接层后使用batch normalisation
+- 使用dropout以减少过拟合
+- 内积层相当于1-N scoring，大大提高了计算效率
+
+### Result
+
+ConvE Predictive Performance任务在各个数据集上的表现：
+
+| Dataset   | MR   | MRR  | Hits@10 | Hits@3 | Hits@1 |
+| --------- | ---- | ---- | ------- | ------ | ------ |
+| FB15k     | 64   | 0.75 | 0.87    | 0.80   | 0.67   |
+| WN18      | 504  | 0.94 | 0.96    | 0.95   | 0.94   |
+| FB15k-237 | 246  | 0.32 | 0.49    | 0.35   | 0.24   |
+| WN18RR    | 4766 | 0.43 | 0.51    | 0.44   | 0.39   |
+| YAGO3-10  | 2792 | 0.52 | 0.66    | 0.56   | 0.45   |
+| Nations   | 2    | 0.82 | 1.00    | 0.88   | 0.72   |
+| UMLS      | 1    | 0.94 | 0.99    | 0.97   | 0.92   |
+| Kinship   | 2    | 0.83 | 0.98    | 0.91   | 0.73   |
+
+模型参数少计算比较快，对于高入度的图节点表现更好
 
 ## KBAT
 
